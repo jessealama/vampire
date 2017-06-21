@@ -869,21 +869,21 @@ KBOBase::KBOBase(Problem& prb, const Options& opt)
       }
     }
 
-    /*
+
       cout << "Function precedences:" << endl;
       for(unsigned i=0;i<_functions;i++){
         cout << env.signature->functionName(aux[i]) << " ";
       }
       cout << endl;
-    */
 
-    /*
+
+
     cout << "Function precedence: ";
     for(unsigned i=0;i<_functions;i++){
       cout << aux[i] << ",";
     }
     cout << endl;
-    */
+
 
     for(unsigned i=0;i<_functions;i++) {
       _functionPrecedences[aux[i]]=i;
@@ -929,20 +929,20 @@ KBOBase::KBOBase(Problem& prb, const Options& opt)
         break;
     }
   }
-  /*
+
   cout << "Predicate precedences:" << endl;
   for(unsigned i=0;i<_predicates;i++){
     cout << env.signature->predicateName(aux[i]) << " "; 
   }
   cout << endl;
-  */
-  /*
+
+
   cout << "Predicate precedence: ";
   for(unsigned i=0;i<_predicates;i++){
     cout << aux[i] << ",";
   }
   cout << endl;
-  */
+
 
   for(unsigned i=0;i<_predicates;i++) {
     _predicatePrecedences[aux[i]]=i;
