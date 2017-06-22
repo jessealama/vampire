@@ -1817,10 +1817,15 @@ public:
   int simulatedTimeLimit() const { return _simulatedTimeLimit.actualValue; }
   void setSimulatedTimeLimit(int newVal) { _simulatedTimeLimit.actualValue = newVal; }
   int maxInferenceDepth() const { return _maxInferenceDepth.actualValue; }
-  SymbolPrecedence symbolPrecedence() const { return _symbolPrecedence.actualValue; }
-  SymbolPrecedenceBoost symbolPrecedenceBoost() const { return _symbolPrecedenceBoost.actualValue; }
+
+  int symbolPrecedenceOccurrenceCoef() const { return _symbolPrecedenceOccurrenceCoef.actualValue; }
+  int symbolPrecedenceArityCoef() const { return _symbolPrecedenceArityCoef.actualValue; }
+  int symbolPrecedenceFrequencyCoef() const { return _symbolPrecedenceFrequencyCoef.actualValue; }
+  int symbolPrecedenceUserCoef() const { return _symbolPrecedenceUserCoef.actualValue; }
+
   const vstring& functionPrecedence() const { return _functionPrecedence.actualValue; }
   const vstring& predicatePrecedence() const { return _predicatePrecedence.actualValue; }
+
   // Return time limit in deciseconds, or 0 if there is no time limit
   int timeLimitInDeciseconds() const { return _timeLimitInDeciseconds.actualValue; }
   size_t memoryLimit() const { return _memoryLimit.actualValue; }
@@ -2281,8 +2286,12 @@ private:
 
   ChoiceOptionValue<Statistics> _statistics;
   BoolOptionValue _superpositionFromVariables;
-  ChoiceOptionValue<SymbolPrecedence> _symbolPrecedence;
-  ChoiceOptionValue<SymbolPrecedenceBoost> _symbolPrecedenceBoost;
+
+  IntOptionValue _symbolPrecedenceOccurrenceCoef;
+  IntOptionValue _symbolPrecedenceArityCoef;
+  IntOptionValue _symbolPrecedenceFrequencyCoef;
+  IntOptionValue _symbolPrecedenceUserCoef;
+
   StringOptionValue _functionPrecedence;
   StringOptionValue _predicatePrecedence;
 

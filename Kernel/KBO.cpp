@@ -610,6 +610,7 @@ Ordering::Result KBOBase::compareFunctionPrecedences(unsigned fun1, unsigned fun
   return fromComparison(cmpRes);
 }
 
+/*
 template<typename Comparator>
 struct FnBoostWrapper
 {
@@ -701,19 +702,7 @@ struct FnFreqComparator
     return res;
   }
 };
-struct PredFreqComparator
-{
-  Comparison compare(unsigned p1, unsigned p2)
-  {
-    unsigned c1 = env.signature->getPredicate(p1)->usageCnt();
-    unsigned c2 = env.signature->getPredicate(p2)->usageCnt();
-    Comparison res = Int::compare(c2,c1);
-    if(res==EQUAL){
-      res = Int::compare(p1,p2);
-    }
-    return res;
-  }
-};
+
 struct FnRevFreqComparator
 {
   Comparison compare(unsigned f1, unsigned f2)
@@ -813,6 +802,188 @@ static void loadPermutationFromString(DArray<unsigned>& p, const vstring& str) {
           ss.ignore();
   }
 }
+*/
+
+struct FnFreqComparator
+{
+  Comparison compare(unsigned f1, unsigned f2)
+  {
+    unsigned c1 = env.signature->getFunction(f1)->usageCnt();
+    unsigned c2 = env.signature->getFunction(f2)->usageCnt();
+    Comparison res = Int::compare(c2,c1);
+    if(res==EQUAL){
+      res = Int::compare(f1,f2);
+    }
+    return res;
+  }
+};
+
+struct PredFreqComparator
+{
+  Comparison compare(unsigned p1, unsigned p2)
+  {
+    unsigned c1 = env.signature->getPredicate(p1)->usageCnt();
+    unsigned c2 = env.signature->getPredicate(p2)->usageCnt();
+    Comparison res = Int::compare(c2,c1);
+    if(res==EQUAL){
+      res = Int::compare(p1,p2);
+    }
+    return res;
+  }
+};
+
+template<typename T> struct ArrayValueComparator
+{
+  const DArray<T>& _values;
+  ArrayValueComparator(const DArray<T>& values) : _values(values) {}
+
+  Comparison compare(unsigned i1, unsigned i2)
+  {
+    Comparison res = Int::compare(_values[i1],_values[i2]);
+    if(res==EQUAL){
+      res = Int::compare(i1,i2);
+    }
+    return res;
+  }
+};
+
+struct FunctionLookupProxy {
+  const char* myname() { return "function"; }
+  const char* myName() { return "Function"; }
+
+  bool exists(const vstring& name, unsigned arity) { return env.signature->functionExists(name,arity); }
+  unsigned getNumber(const vstring& name, unsigned arity) { return env.signature->getFunctionNumber(name,arity); }
+  const vstring getName(unsigned i) { return env.signature->functionName(i); }
+  unsigned getArity(unsigned i) { return env.signature->functionArity(i); }
+
+  FnFreqComparator getComparator() { return FnFreqComparator(); }
+  const char* getUserPreferenceFileName(const Options& opt) { return opt.functionPrecedence().c_str(); }
+};
+
+struct PredicateLookupProxy {
+  const char* myname() { return "predicate"; }
+  const char* myName() { return "Predicate"; }
+
+  bool exists(const vstring& name, unsigned arity) { return env.signature->predicateExists(name,arity); }
+  unsigned getNumber(const vstring& name, unsigned arity) { return env.signature->getPredicateNumber(name,arity); }
+  const vstring getName(unsigned i) { return env.signature->predicateName(i); }
+  unsigned getArity(unsigned i) { return env.signature->predicateArity(i); }
+
+  PredFreqComparator getComparator() { return PredFreqComparator(); }
+  const char* getUserPreferenceFileName(const Options& opt) { return opt.predicatePrecedence().c_str(); }
+};
+
+template<typename T> // T encapsulates access to either functions or predicates in the signature
+static void loadUserPreferencesFromFile(DArray<unsigned>& p, const char* filename, T thing) {
+  CALL("loadUserValuesFromFile");
+
+  BYPASSING_ALLOCATOR;
+
+  ifstream preference_file (filename);
+  if (preference_file.is_open()) {
+    std::string line;
+    while (getline(preference_file, line)) {
+      std::stringstream ss(line);
+
+      vstring name;
+      unsigned arity;
+      unsigned value;
+      if (!(ss >> name >> arity >> value)) {
+        cerr << "WARNING: Weird line in " << thing.myname() << " preference file: " << line << endl; // "function"
+        continue;
+      }
+
+      if (!name.empty() && name[name.length()-1] == '*') {
+        // terminal wild card matching (= search string should be a prefix) -- slow
+        for (unsigned i = 0; i < p.size(); i++) {
+          if (thing.getName(i).compare(0,name.length()-1,name,0,name.length()-1) == 0) { // match // env.signature->functionName(i)
+            p[i] = value;
+          }
+        }
+      } else {
+        // efficient lookup for a precise match
+        if (!thing.exists(name,arity)) { // env.signature->functionExists(name,arity)
+          cerr << "WARNING: " << thing.myName() << " " << name << "/" << arity << " does not exist." << endl; // "Function"
+          continue;
+        }
+
+        unsigned i = thing.getNumber(name,arity); // env.signature->getFunctionNumber(name,arity);
+
+        p[i] = value;
+      }
+    }
+
+    preference_file.close();
+  }
+}
+
+template <typename T>
+static void initPrecedenece(const Options& opt, unsigned numOfThings, DArray<int>& precedence, T thing) {
+  static DArray<unsigned> aux(32);
+  static DArray<int> values(32);
+  int coef;
+
+  if(numOfThings) {
+    values.init(numOfThings,0);
+
+    coef = opt.symbolPrecedenceOccurrenceCoef();
+    if (coef) {
+      // the array is naturally created ordered by occurrence
+      for (unsigned i = 0; i < numOfThings; i++) {
+        values[i] += coef*i;
+      }
+    }
+
+    coef = opt.symbolPrecedenceArityCoef();
+    if (coef) {
+      for (unsigned i = 0; i < numOfThings; i++) {
+        values[i] += coef*thing.getArity(i);
+      }
+    }
+
+    coef = opt.symbolPrecedenceFrequencyCoef();
+    if (coef) {
+      aux.initFromIterator(getRangeIterator(0u, numOfThings), numOfThings);
+      aux.sort(thing.getComparator());
+
+      for (unsigned i = 0; i < numOfThings; i++) {
+        // cout << "aux " << i << " for " << thing.getName(i) << " val " <<  aux[i] << endl;
+
+        values[aux[i]] += coef*i;
+      }
+    }
+
+    coef = opt.symbolPrecedenceUserCoef();
+    if (coef && !opt.functionPrecedence().empty()) {
+      aux.init(numOfThings,0);
+      loadUserPreferencesFromFile(aux,thing.getUserPreferenceFileName(opt),thing);
+
+      for (unsigned i = 0; i < numOfThings; i++) {
+        values[i] += coef*aux[i];
+      }
+    }
+
+    // here we sort aux by values
+    aux.initFromIterator(getRangeIterator(0u, numOfThings), numOfThings);
+    aux.sort(ArrayValueComparator<int>(values));
+
+    cout << thing.myName() << " precedences:" << endl;
+    for(unsigned i=0;i<numOfThings;i++){
+      cout << thing.getName(aux[i]) << " ";
+    }
+    cout << endl;
+
+    cout << thing.myName() << " precedence: ";
+    for(unsigned i=0;i<numOfThings;i++){
+      cout << aux[i] << ",";
+    }
+    cout << endl;
+
+    for(unsigned i=0;i<numOfThings;i++) {
+      precedence[aux[i]]=i;
+    }
+  }
+}
 
 /**
  * Create a KBOBase object.
@@ -827,126 +998,14 @@ KBOBase::KBOBase(Problem& prb, const Options& opt)
   CALL("KBOBase::KBOBase");
   ASS_G(_predicates, 0);
 
-  DArray<unsigned> aux(32);
-  if(_functions) {
-    aux.initFromIterator(getRangeIterator(0u, _functions), _functions);
-
-    if (!opt.functionPrecedence().empty()) {
-      BYPASSING_ALLOCATOR;
-
-      vstring precedence;
-      ifstream precedence_file (opt.functionPrecedence().c_str());
-      if (precedence_file.is_open() && getline(precedence_file, precedence)) {
-        loadPermutationFromString(aux,precedence);
-        precedence_file.close();
-      }
-    } else {
-      switch(opt.symbolPrecedence()) {
-      case Shell::Options::SymbolPrecedence::ARITY:
-        aux.sort(FnBoostWrapper<FnArityComparator>(FnArityComparator()));
-        break;
-      case Shell::Options::SymbolPrecedence::REVERSE_ARITY:
-        aux.sort(FnBoostWrapper<FnRevArityComparator>(FnRevArityComparator()));
-        break;
-      case Shell::Options::SymbolPrecedence::FREQUENCY:
-      case Shell::Options::SymbolPrecedence::WEIGHTED_FREQUENCY:
-        aux.sort(FnBoostWrapper<FnFreqComparator>(FnFreqComparator()));
-        break;
-      case Shell::Options::SymbolPrecedence::REVERSE_FREQUENCY:
-      case Shell::Options::SymbolPrecedence::REVERSE_WEIGHTED_FREQUENCY:
-        aux.sort(FnBoostWrapper<FnRevFreqComparator>(FnRevFreqComparator()));
-        break;
-      case Shell::Options::SymbolPrecedence::OCCURRENCE:
-        break;
-      case Shell::Options::SymbolPrecedence::SCRAMBLE:
-        for(unsigned i=0;i<_functions;i++){
-          unsigned j = Random::getInteger(_functions-i)+i;
-          unsigned tmp = aux[j];
-          aux[j]=aux[i];
-          aux[i]=tmp;
-        }
-        break;
-      }
-    }
-
-
-      cout << "Function precedences:" << endl;
-      for(unsigned i=0;i<_functions;i++){
-        cout << env.signature->functionName(aux[i]) << " ";
-      }
-      cout << endl;
-
-
-
-    cout << "Function precedence: ";
-    for(unsigned i=0;i<_functions;i++){
-      cout << aux[i] << ",";
-    }
-    cout << endl;
-
-
-    for(unsigned i=0;i<_functions;i++) {
-      _functionPrecedences[aux[i]]=i;
-    }
+  /*
+  for (unsigned i = 0; i < _functions; i++) {
+    cout << env.signature->functionName(i) << " has usage count " << env.signature->getFunction(i)->usageCnt() << endl;
   }
+  */
 
-  aux.initFromIterator(getRangeIterator(0u, _predicates), _predicates);
-
-  if (!opt.predicatePrecedence().empty()) {
-    BYPASSING_ALLOCATOR;
-
-    vstring precedence;
-    ifstream precedence_file (opt.predicatePrecedence().c_str());
-    if (precedence_file.is_open() && getline(precedence_file, precedence)) {
-      loadPermutationFromString(aux,precedence);
-      precedence_file.close();
-    }
-  } else {
-    switch(opt.symbolPrecedence()) {
-    case Shell::Options::SymbolPrecedence::ARITY:
-      aux.sort(PredBoostWrapper<PredArityComparator>(PredArityComparator()));
-      break;
-    case Shell::Options::SymbolPrecedence::REVERSE_ARITY:
-      aux.sort(PredBoostWrapper<PredRevArityComparator>(PredRevArityComparator()));
-      break;
-    case Shell::Options::SymbolPrecedence::FREQUENCY:
-    case Shell::Options::SymbolPrecedence::WEIGHTED_FREQUENCY:
-      aux.sort(PredBoostWrapper<PredFreqComparator>(PredFreqComparator()));
-      break;
-    case Shell::Options::SymbolPrecedence::REVERSE_FREQUENCY:
-    case Shell::Options::SymbolPrecedence::REVERSE_WEIGHTED_FREQUENCY:
-     aux.sort(PredBoostWrapper<PredRevFreqComparator>(PredRevFreqComparator()));
-     break;
-    case Shell::Options::SymbolPrecedence::OCCURRENCE:
-      break;
-      case Shell::Options::SymbolPrecedence::SCRAMBLE:
-        for(unsigned i=0;i<_predicates;i++){
-          unsigned j = Random::getInteger(_predicates-i)+i;
-          unsigned tmp = aux[j];
-          aux[j]=aux[i];
-          aux[i]=tmp;
-        }
-        break;
-    }
-  }
-
-  cout << "Predicate precedences:" << endl;
-  for(unsigned i=0;i<_predicates;i++){
-    cout << env.signature->predicateName(aux[i]) << " "; 
-  }
-  cout << endl;
-
-
-  cout << "Predicate precedence: ";
-  for(unsigned i=0;i<_predicates;i++){
-    cout << aux[i] << ",";
-  }
-  cout << endl;
-
-
-  for(unsigned i=0;i<_predicates;i++) {
-    _predicatePrecedences[aux[i]]=i;
-  }
+  initPrecedenece(opt,_functions,_functionPrecedences,FunctionLookupProxy());
+  initPrecedenece(opt,_predicates,_predicatePrecedences,PredicateLookupProxy());
 
   switch(opt.literalComparisonMode()) {
   case Shell::Options::LiteralComparisonMode::STANDARD:

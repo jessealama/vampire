@@ -1508,6 +1508,27 @@ void Options::Options::init()
     _activationLimit.setExperimental();
     _lookup.insert(&_activationLimit);
 
+    _symbolPrecedenceOccurrenceCoef = IntOptionValue("symbol_precedence_occurrence_coef","spoc",1);
+    _symbolPrecedenceOccurrenceCoef.description="";
+    _lookup.insert(&_symbolPrecedenceOccurrenceCoef);
+    _symbolPrecedenceOccurrenceCoef.tag(OptionTag::SATURATION);
+
+    _symbolPrecedenceArityCoef = IntOptionValue("symbol_precedence_arity_coef","spac",0);
+    _symbolPrecedenceArityCoef.description="";
+    _lookup.insert(&_symbolPrecedenceArityCoef);
+    _symbolPrecedenceArityCoef.tag(OptionTag::SATURATION);
+
+    _symbolPrecedenceFrequencyCoef = IntOptionValue("symbol_precedence_frequency_coef","spfc",0);
+    _symbolPrecedenceFrequencyCoef.description="";
+    _lookup.insert(&_symbolPrecedenceFrequencyCoef);
+    _symbolPrecedenceFrequencyCoef.tag(OptionTag::SATURATION);
+
+    _symbolPrecedenceUserCoef = IntOptionValue("symbol_precedence_user_coef","spuc",0);
+    _symbolPrecedenceUserCoef.description="";
+    _lookup.insert(&_symbolPrecedenceUserCoef);
+    _symbolPrecedenceUserCoef.tag(OptionTag::SATURATION);
+
+    /*
     _symbolPrecedence = ChoiceOptionValue<SymbolPrecedence>("symbol_precedence","sp",SymbolPrecedence::ARITY,
                                                             {"arity","occurrence","reverse_arity","scramble",
                                                              "frequency","reverse_frequency",
@@ -1515,7 +1536,8 @@ void Options::Options::init()
     _symbolPrecedence.description="Vampire uses KBO which requires a precedence relation between symbols. Arity orders symbols by their arity (and reverse_arity takes the reverse of this) and occurence orders symbols by the order they appear in the problem.";
     _lookup.insert(&_symbolPrecedence);
     _symbolPrecedence.tag(OptionTag::SATURATION);
-    _symbolPrecedence.setRandomChoices({"arity","occurence","reverse_arity","frequency"});
+    _symbolPrecedence.setRandomChoices({"arity","occurrence","reverse_arity","frequency"});
+    */
 
     _functionPrecedence = StringOptionValue("function_precendence","fp","");
     _functionPrecedence.description = "A name of a file with an explicit user specified precedence on function symbols.";
@@ -1527,11 +1549,13 @@ void Options::Options::init()
     _predicatePrecedence.setExperimental();
     _lookup.insert(&_predicatePrecedence);
 
+    /*
     _symbolPrecedenceBoost = ChoiceOptionValue<SymbolPrecedenceBoost>("symbol_precedence_boost","spb",SymbolPrecedenceBoost::NONE,
                                      {"none","goal","units","goal_then_units"});
     _symbolPrecedenceBoost.description = "";
     _symbolPrecedenceBoost.tag(OptionTag::SATURATION);
     _lookup.insert(&_symbolPrecedenceBoost);
+    */
 
     //******************************************************************
     //*********************** Unused ??  *******************************
@@ -1542,8 +1566,6 @@ void Options::Options::init()
     _lookup.insert(&_rowVariableMaxLength);
     _rowVariableMaxLength.tag(OptionTag::UNUSED);
     _rowVariableMaxLength.setExperimental();
-
-
 
     //******************************************************************
     //*********************** Vinter???  *******************************
