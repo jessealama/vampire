@@ -1539,13 +1539,23 @@ void Options::Options::init()
     _symbolPrecedence.setRandomChoices({"arity","occurrence","reverse_arity","frequency"});
     */
 
+    _functionPrecedenceFile = StringOptionValue("function_precendence_file","fpf","");
+    _functionPrecedenceFile.description = "A name of a file with an explicit user specified precedence on function symbols.";
+    _functionPrecedenceFile.setExperimental();
+    _lookup.insert(&_functionPrecedenceFile);
+
+    _predicatePrecedenceFile = StringOptionValue("predicate_precendence_file","ppf","");
+    _predicatePrecedenceFile.description = "A name of a file with an explicit user specified precedence on predicate symbols.";
+    _predicatePrecedenceFile.setExperimental();
+    _lookup.insert(&_predicatePrecedenceFile);
+
     _functionPrecedence = StringOptionValue("function_precendence","fp","");
-    _functionPrecedence.description = "A name of a file with an explicit user specified precedence on function symbols.";
+    _functionPrecedence.description = "A string with an explicit user specified precedence on function symbols.";
     _functionPrecedence.setExperimental();
     _lookup.insert(&_functionPrecedence);
 
     _predicatePrecedence = StringOptionValue("predicate_precendence","pp","");
-    _predicatePrecedence.description = "A name of a file with an explicit user specified precedence on predicate symbols.";
+    _predicatePrecedence.description = "A string with an explicit user specified precedence on predicate symbols.";
     _predicatePrecedence.setExperimental();
     _lookup.insert(&_predicatePrecedence);
 

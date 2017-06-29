@@ -857,7 +857,11 @@ struct FunctionLookupProxy {
   unsigned getArity(unsigned i) { return env.signature->functionArity(i); }
 
   FnFreqComparator getComparator() { return FnFreqComparator(); }
-  const char* getUserPreferenceFileName(const Options& opt) { return opt.functionPrecedence().c_str(); }
+
+  bool userPreferenceEmpty(const Options& opt) { return opt.functionPrecedence().empty(); }
+  const vstring& getUserPreferenceString(const Options& opt) { return opt.functionPrecedence(); }
+  bool userPreferenceFileNameEmpty(const Options& opt) { return opt.functionPrecedenceFile().empty(); }
+  const char* getUserPreferenceFileName(const Options& opt) { return opt.functionPrecedenceFile().c_str(); }
 };
 
 struct PredicateLookupProxy {
@@ -870,8 +874,45 @@ struct PredicateLookupProxy {
   unsigned getArity(unsigned i) { return env.signature->predicateArity(i); }
 
   PredFreqComparator getComparator() { return PredFreqComparator(); }
-  const char* getUserPreferenceFileName(const Options& opt) { return opt.predicatePrecedence().c_str(); }
+
+  bool userPreferenceEmpty(const Options& opt) { return opt.predicatePrecedence().empty(); }
+  const vstring& getUserPreferenceString(const Options& opt) { return opt.predicatePrecedence(); }
+  bool userPreferenceFileNameEmpty(const Options& opt) { return opt.predicatePrecedenceFile().empty(); }
+  const char* getUserPreferenceFileName(const Options& opt) { return opt.predicatePrecedenceFile().c_str(); }
 };
+
+template<typename T> // T encapsulates access to either functions or predicates in the signature
+static void parseUserPreferenceLine(DArray<unsigned>& p, const std::string& line, T thing) {
+  CALL("parseUserPreferenceLine");
+  std::stringstream ss(line);
+
+  vstring name;
+  unsigned arity;
+  unsigned value;
+  if (!(ss >> name >> arity >> value)) {
+    cerr << "WARNING: Weird line in " << thing.myname() << " preference spec: " << line << endl; // "function"
+    return;
+  }
+
+  if (!name.empty() && name[name.length()-1] == '*') {
+    // terminal wild card matching (= search string should be a prefix) -- slow
+    for (unsigned i = 0; i < p.size(); i++) {
+      if (thing.getName(i).compare(0,name.length()-1,name,0,name.length()-1) == 0) { // match // env.signature->functionName(i)
+        p[i] = value;
+      }
+    }
+  } else {
+    // efficient lookup for a precise match
+    if (!thing.exists(name,arity)) { // env.signature->functionExists(name,arity)
+      cerr << "WARNING: " << thing.myName() << " " << name << "/" << arity << " does not exist." << endl; // "Function"
+      return;
+    }
+
+    unsigned i = thing.getNumber(name,arity); // env.signature->getFunctionNumber(name,arity);
+
+    p[i] = value;
+  }
+}
 
 template<typename T> // T encapsulates access to either functions or predicates in the signature
 static void loadUserPreferencesFromFile(DArray<unsigned>& p, const char* filename, T thing) {
@@ -883,38 +924,25 @@ static void loadUserPreferencesFromFile(DArray<unsigned>& p, const char* filenam
   if (preference_file.is_open()) {
     std::string line;
     while (getline(preference_file, line)) {
-      std::stringstream ss(line);
-
-      vstring name;
-      unsigned arity;
-      unsigned value;
-      if (!(ss >> name >> arity >> value)) {
-        cerr << "WARNING: Weird line in " << thing.myname() << " preference file: " << line << endl; // "function"
-        continue;
-      }
-
-      if (!name.empty() && name[name.length()-1] == '*') {
-        // terminal wild card matching (= search string should be a prefix) -- slow
-        for (unsigned i = 0; i < p.size(); i++) {
-          if (thing.getName(i).compare(0,name.length()-1,name,0,name.length()-1) == 0) { // match // env.signature->functionName(i)
-            p[i] = value;
-          }
-        }
-      } else {
-        // efficient lookup for a precise match
-        if (!thing.exists(name,arity)) { // env.signature->functionExists(name,arity)
-          cerr << "WARNING: " << thing.myName() << " " << name << "/" << arity << " does not exist." << endl; // "Function"
-          continue;
-        }
-
-        unsigned i = thing.getNumber(name,arity); // env.signature->getFunctionNumber(name,arity);
-
-        p[i] = value;
-      }
+      parseUserPreferenceLine(p,line,thing);
     }
 
     preference_file.close();
   }
+}
+
+template<typename T> // T encapsulates access to either functions or predicates in the signature
+static void loadUserPreferencesFromString(DArray<unsigned>& p, const vstring& string, T thing) {
+  CALL("loadUserPreferencesFromString");
+
+  BYPASSING_ALLOCATOR;
+
+  std::stringstream ss(string.c_str());
+  std::string line;
+  while (std::getline(ss, line, '#')) {
+    parseUserPreferenceLine(p,line,thing);
+  }
+
 }
 
 template <typename T>
@@ -954,9 +982,14 @@ static void initPrecedenece(const Options& opt, unsigned numOfThings, DArray<int
     }
 
     coef = opt.symbolPrecedenceUserCoef();
-    if (coef && !opt.functionPrecedence().empty()) {
+    if (coef && !(thing.userPreferenceFileNameEmpty(opt) && thing.userPreferenceEmpty(opt))) {
       aux.init(numOfThings,0);
-      loadUserPreferencesFromFile(aux,thing.getUserPreferenceFileName(opt),thing);
+      if (!thing.userPreferenceFileNameEmpty(opt)) {
+        loadUserPreferencesFromFile(aux,thing.getUserPreferenceFileName(opt),thing);
+      }
+      if (!thing.userPreferenceEmpty(opt)) {
+        loadUserPreferencesFromString(aux,thing.getUserPreferenceString(opt),thing);
+      }
 
       for (unsigned i = 0; i < numOfThings; i++) {
         values[i] += coef*aux[i];

@@ -1823,6 +1823,8 @@ public:
   int symbolPrecedenceFrequencyCoef() const { return _symbolPrecedenceFrequencyCoef.actualValue; }
   int symbolPrecedenceUserCoef() const { return _symbolPrecedenceUserCoef.actualValue; }
 
+  const vstring& functionPrecedenceFile() const { return _functionPrecedenceFile.actualValue; }
+  const vstring& predicatePrecedenceFile() const { return _predicatePrecedenceFile.actualValue; }
   const vstring& functionPrecedence() const { return _functionPrecedence.actualValue; }
   const vstring& predicatePrecedence() const { return _predicatePrecedence.actualValue; }
 
@@ -2292,6 +2294,8 @@ private:
   IntOptionValue _symbolPrecedenceFrequencyCoef;
   IntOptionValue _symbolPrecedenceUserCoef;
 
+  StringOptionValue _functionPrecedenceFile;
+  StringOptionValue _predicatePrecedenceFile;
   StringOptionValue _functionPrecedence;
   StringOptionValue _predicatePrecedence;
 
