@@ -884,22 +884,40 @@ struct PredicateLookupProxy {
 template<typename T> // T encapsulates access to either functions or predicates in the signature
 static void parseUserPreferenceLine(DArray<unsigned>& p, const std::string& line, T thing) {
   CALL("parseUserPreferenceLine");
+
   std::stringstream ss(line);
 
   vstring name;
+  std::string arity_str,value_str,dummy;
   unsigned arity;
   unsigned value;
-  if (!(ss >> name >> arity >> value)) {
+  if (!std::getline(ss, name, ':') || !std::getline(ss, arity_str, ':') || !std::getline(ss, value_str, ':') || std::getline(ss, dummy)) {
     cerr << "WARNING: Weird line in " << thing.myname() << " preference spec: " << line << endl; // "function"
     return;
   }
 
-  if (!name.empty() && name[name.length()-1] == '*') {
+  try {
+    arity = std::stoul(arity_str);
+    value = std::stoul(value_str);
+
+  } catch (invalid_argument) {
+    cerr << "WARNING: Weird line in " << thing.myname() << " preference spec: " << line << endl; // "function"
+    return;
+  }
+
+  // cout << "name:" <<name<<" arity:"<<arity<<" value:"<<value<< endl;
+
+  if (!name.empty() && name[name.length()-1] == '+') {
     // terminal wild card matching (= search string should be a prefix) -- slow
+    bool matched = false;
     for (unsigned i = 0; i < p.size(); i++) {
       if (thing.getName(i).compare(0,name.length()-1,name,0,name.length()-1) == 0) { // match // env.signature->functionName(i)
         p[i] = value;
+        matched = true;
       }
+    }
+    if (!matched) {
+      cerr << "WARNING: Couldn't match a wildcard " << thing.myname() << " preference spec: " << name << endl; // "function"
     }
   } else {
     // efficient lookup for a precise match
@@ -939,7 +957,9 @@ static void loadUserPreferencesFromString(DArray<unsigned>& p, const vstring& st
 
   std::stringstream ss(string.c_str());
   std::string line;
-  while (std::getline(ss, line, '#')) {
+  while (std::getline(ss, line, ',')) {
+    // cout << "Have line: " << line << endl;
+
     parseUserPreferenceLine(p,line,thing);
   }
 
