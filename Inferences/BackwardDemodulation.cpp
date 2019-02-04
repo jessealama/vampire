@@ -222,7 +222,7 @@ struct BackwardDemodulation::ResultFn
     }
     ASS_EQ(next,cLen);
 
-    res->setAge(qr.clause->age());
+    res->setAge(Int::max(qr.clause->age(),_cl->age()));
     env.statistics->backwardDemodulations++;
 
     _removed->insert(qr.clause);

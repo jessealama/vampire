@@ -213,7 +213,7 @@ bool ForwardDemodulation::perform(Clause* cl, Clause*& replacement, ClauseIterat
 	}
 	ASS_EQ(next,cLen);
 
-	res->setAge(cl->age());
+	res->setAge(Int::max(cl->age(),qr.clause->age()));
 	env.statistics->forwardDemodulations++;
 
 	premises = pvi( getSingletonIterator(qr.clause));

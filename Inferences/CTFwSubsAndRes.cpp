@@ -84,7 +84,7 @@ Clause* CTFwSubsAndRes::buildSResClause(Clause* cl, unsigned resolvedIndex, Clau
   }
   ASS_EQ(next,newLength);
 
-  res->setAge(cl->age());
+  res->setAge(Int::max(cl->age(),premise->age()));
 
   return res;
 }

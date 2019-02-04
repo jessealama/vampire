@@ -86,7 +86,7 @@ void RefutationSeekerFSE::perform(Clause* cl, ForwardSimplificationPerformer* si
     	Int::max(cl->inputType(), res.clause->inputType());
 
     Clause* refutation = new(0) Clause(0, inpType, inf);
-    refutation->setAge(cl->age());
+    refutation->setAge(Int::max(cl->age(),res.clause->age()));
     env.statistics->resolution++;
 
     simplPerformer->perform(res.clause, refutation);

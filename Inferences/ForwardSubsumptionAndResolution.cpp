@@ -213,7 +213,7 @@ Clause* ForwardSubsumptionAndResolution::generateSubsumptionResolutionClause(Cla
     }
   }
 
-  res->setAge(cl->age());
+  res->setAge(Int::max(cl->age(),baseClause->age()));
 
   return res;
 }

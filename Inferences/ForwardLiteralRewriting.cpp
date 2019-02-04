@@ -124,7 +124,7 @@ bool ForwardLiteralRewriting::perform(Clause* cl, Clause*& replacement, ClauseIt
       }
       ASS_EQ(next,clen);
 
-      res->setAge(cl->age());
+      res->setAge(Int::max(cl->age(),premise->age()));
       env.statistics->forwardLiteralRewrites++;
 
       premises = pvi( getSingletonIterator(premise));

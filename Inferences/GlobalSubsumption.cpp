@@ -241,10 +241,16 @@ Clause* GlobalSubsumption::perform(Clause* cl, Stack<Unit*>& prems)
           } );
         
         UnitList* premList = 0;
+        unsigned maxage = 0;
         Stack<Unit*>::Iterator it(prems);
         while (it.hasNext()) {
           Unit* us = it.next();
           UnitList::push(us, premList);
+
+          if (us->isClause()) {
+            Clause* cl = us->asClause();
+            maxage = Int::max(maxage,cl->age());
+          }
         }
         
         SATClauseList* satPremises = solver.getRefutationPremiseList();
@@ -254,7 +260,7 @@ Clause* GlobalSubsumption::perform(Clause* cl, Stack<Unit*>& prems)
              new InferenceMany(Inference::GLOBAL_SUBSUMPTION, premList);
 
         Clause* replacement = Clause::fromIterator(LiteralStack::BottomFirstIterator(survivors),cl->inputType(), inf);
-        replacement->setAge(cl->age());
+        replacement->setAge(Int::max(cl->age(),maxage));
         
         // Splitter will set replacement's splitSet, so we don't have to do it here
                 
