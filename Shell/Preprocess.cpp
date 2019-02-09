@@ -236,7 +236,7 @@ void Preprocess::preprocess(Problem& prb)
     Normalisation().normalise(prb);
   }
 
-  if (_options.showForKarel() || _options.sineToAge()) {
+  if (_options.showForKarel() || _options.sineToAge() || _options.evalForKarel()) {
     env.statistics->phase=Statistics::SINE_SELECTION;
 
     // just to initialize ``env.clausePriorities''
