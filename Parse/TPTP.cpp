@@ -1936,7 +1936,7 @@ void TPTP::endTupleBinding() {
   unsigned tupleArity = tupleSort->arity();
 
   Set<vstring> uniqueSymbolNames;
-  IntList* constants = IntList::empty();
+  List<int>* constants = List<int>::empty();
   for (unsigned i = 0; i < tupleArity; i++) {
     vstring name = _strings.pop();
     if (uniqueSymbolNames.contains(name)) {
@@ -1958,7 +1958,7 @@ void TPTP::endTupleBinding() {
       env.signature->getFunction(symbol)->setType(OperatorType::getConstantsType(sort));
     }
 
-    IntList::push(symbol, constants);
+    List<int>::push(symbol, constants);
 
     LetFunctionName functionName(name, 0);
     LetFunctionReference functionReference(symbol, isPredicate);

@@ -1877,6 +1877,7 @@ public:
   bool showNew() const { return showAll() || _showNew.actualValue; }
   bool showEmpty() const { return _showEmpty.actualValue; }
   bool showForKarel() const { return _showForKarel.actualValue; }
+  bool evalForKarel() const { return _evalForKarel.actualValue; }
   bool sineToAge() const { return _sineToAge.actualValue; }
   unsigned killClause() const { return _killClause.actualValue; }
   bool showSplitting() const { return showAll() || _showSplitting.actualValue; }
@@ -2401,6 +2402,7 @@ private:
   BoolOptionValue _showNew;
   BoolOptionValue _showEmpty;
   BoolOptionValue _showForKarel;
+  BoolOptionValue _evalForKarel;
   BoolOptionValue _sineToAge;
   IntOptionValue _killClause;
   BoolOptionValue _showSplitting;

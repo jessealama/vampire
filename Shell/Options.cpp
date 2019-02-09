@@ -640,6 +640,10 @@ void Options::Options::init()
     _lookup.insert(&_showForKarel);
     _showForKarel.tag(OptionTag::DEVELOPMENT);
 
+    _evalForKarel = BoolOptionValue("eval_for_karel","e4k",false);
+    _lookup.insert(&_evalForKarel);
+    _evalForKarel.tag(OptionTag::DEVELOPMENT);
+
     _sineToAge = BoolOptionValue("sine_to_age","s2a",false);
     _lookup.insert(&_sineToAge);
     _sineToAge.tag(OptionTag::DEVELOPMENT);
