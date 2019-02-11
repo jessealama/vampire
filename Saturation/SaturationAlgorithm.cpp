@@ -338,36 +338,6 @@ void SaturationAlgorithm::onPassiveAdded(Clause* c)
     env.endOutput();
   }
   
-  if (_opt.showForKarel()) {
-    cout << "pass: " << c->number() << endl;
-  }
-
-  if (_opt.evalForKarel()) {
-    TimeCounter t(TC_DEEP_STUFF);
-
-    torch::jit::IValue vec = clause_vecs.get(c);
-
-    std::vector<torch::jit::IValue> inputs;
-    inputs.push_back(vec);
-
-    auto output = model_final->forward(inputs).toTensor();
-    auto o_data = output.data<float>();
-
-    bool yes = (o_data[0] < o_data[1]);
-    // cout << "yes?:" << yes << " " << o_data[0] << " " << o_data[1] << endl;
-
-#if DEBUG_MODEL
-    cout << "final: " << c->number() << endl;
-    cout << output << endl;
-#endif
-
-    c->modelSaidYes = yes;
-
-    if (_opt.showForKarel()) {
-      cout << "eval: " << c->number() << " " << o_data[0] <<  " " << o_data[1] << endl;
-    }
-  }
-
   //when a clause is added to the passive container,
   //we know it is not redundant
   onNonRedundantClause(c);
@@ -1207,6 +1177,36 @@ void SaturationAlgorithm::addToPassive(Clause* cl)
 
   cl->setStore(Clause::PASSIVE);
   env.statistics->passiveClauses++;
+
+  if (_opt.showForKarel()) {
+    cout << "pass: " << cl->number() << endl;
+  }
+
+  if (_opt.evalForKarel()) {
+    TimeCounter t(TC_DEEP_STUFF);
+
+    torch::jit::IValue vec = clause_vecs.get(cl);
+
+    std::vector<torch::jit::IValue> inputs;
+    inputs.push_back(vec);
+
+    auto output = model_final->forward(inputs).toTensor();
+    auto o_data = output.data<float>();
+
+    bool yes = (o_data[0] < o_data[1]);
+    // cout << "yes?:" << yes << " " << o_data[0] << " " << o_data[1] << endl;
+
+#if DEBUG_MODEL
+    cout << "final: " << cl->number() << endl;
+    cout << output << endl;
+#endif
+
+    cl->modelSaidYes = yes;
+
+    if (_opt.showForKarel()) {
+      cout << "eval: " << cl->number() << " " << o_data[0] <<  " " << o_data[1] << endl;
+    }
+  }
 
   _passive->add(cl);
 }
