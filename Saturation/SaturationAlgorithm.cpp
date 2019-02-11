@@ -104,6 +104,7 @@ using namespace Saturation;
 /** Print information about performed backward simplifications */
 #define REPORT_BW_SIMPL 0
 
+#define DEBUG_MODEL 0
 
 SaturationAlgorithm* SaturationAlgorithm::s_instance = 0;
 
@@ -347,13 +348,19 @@ void SaturationAlgorithm::onPassiveAdded(Clause* c)
     std::vector<torch::jit::IValue> inputs;
     inputs.push_back(vec);
 
-    auto output = model_final->forward(inputs).toTensor().data<float>();
+    auto output = model_final->forward(inputs).toTensor();
+    auto o_data = output.data<float>();
 
-    bool yes = (output[0] < output[1]);
+    bool yes = (o_data[0] < o_data[1]);
     // cout << "yes?:" << yes << " " << output[0] << " " << output[1] << endl;
 
+#if DEBUG_MODEL
+    cout << "final: " << c->number() << endl;
+    cout << output << endl;
+#endif
+
     if (_opt.showForKarel()) {
-      cout << "eval: " << c->number() << " " << output[0] <<  " " << output[1] << endl;
+      cout << "eval: " << c->number() << " " << o_data[0] <<  " " << o_data[1] << endl;
     }
   }
 
@@ -490,6 +497,12 @@ void SaturationAlgorithm::onNewClause(Clause* cl)
 
         auto output = model_unary->forward(inputs);
 
+#if DEBUG_MODEL
+        cout << "unary: " << cl->number() << endl;
+        cout << init_input << endl;
+        cout << output << endl;
+#endif
+
         clause_vecs.insert(cl,output);
       } else if (par_cnt == 2) {
         auto cl_vec = clause_vec(cl);
@@ -499,6 +512,12 @@ void SaturationAlgorithm::onNewClause(Clause* cl)
         inputs.push_back(init_input);
 
         auto output = model_binary->forward(inputs);
+
+#if DEBUG_MODEL
+        cout << "binary: " << cl->number() << endl;
+        cout << init_input << endl;
+        cout << output << endl;
+#endif
 
         clause_vecs.insert(cl,output);
       } else {
@@ -722,12 +741,18 @@ void SaturationAlgorithm::addInputClause(Clause* cl)
 
     auto init_input = torch::cat({init_vec,cl_vec},0);
 
-    //cout << init_input << endl;
+    // cout << init_input << endl;
 
     std::vector<torch::jit::IValue> inputs;
     inputs.push_back(init_input);
 
     auto output = model_init->forward(inputs);
+
+#if DEBUG_MODEL
+    cout << "init: " << cl->number() << endl;
+    cout << init_input << endl;
+    cout << output << endl;
+#endif
 
     clause_vecs.insert(cl,output);
   }
