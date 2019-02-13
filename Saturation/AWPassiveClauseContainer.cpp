@@ -223,12 +223,14 @@ bool WeightQueue::lessThan(Clause* c1,Clause* c2)
 {
   CALL("WeightQueue::lessThan");
 
-  if (c1->modelSaidYes && !c2->modelSaidYes) {
-    return true;
-  }
+  if (_modelSaidYes) {
+    if (c1->modelSaidYes && !c2->modelSaidYes) {
+      return true;
+    }
 
-  if (c2->modelSaidYes && !c1->modelSaidYes) {
-    return false;
+    if (c2->modelSaidYes && !c1->modelSaidYes) {
+      return false;
+    }
   }
 
   Comparison weightCmp=AWPassiveClauseContainer::compareWeight(c1, c2, _opt);
@@ -263,43 +265,6 @@ bool WeightQueue::lessThan(Clause* c1,Clause* c2)
   return c1->number() < c2->number();
 } // WeightQueue::lessThan
 
-
-bool AgeQueue::belowMerlin(Clause* cl)
-{
-  CALL("AgeQueue::belowMerlin");
-
-  // the "below" is intentionally non-strict
-  return (cl->age() < _merlin.size()) && (cl->weight() <= _merlin[cl->age()]);
-}
-
-void AgeQueue::setAgeMerlinFromString(const vstring& string)
-{
-  CALL("AgeQueue::setAgeMerlinFromString");
-
-  // copy, so that we can modify it
-  vstring s = string;
-
-  size_t n = std::count(s.begin(), s.end(), ',');
-  _merlin.expand(n);
-
-  // before each comma, there should be a number
-  unsigned idx = 0;
-  unsigned beg = 0;
-  unsigned pos = 0;
-  while (pos < s.length()) {
-    if (s[pos] == ',') {
-      _merlin[idx] = 0; // so that there is something reasonable if this fails
-      s[pos] = '\0';    // to fake string end
-      Int::stringToUnsignedInt(&s[beg],_merlin[idx]);
-      beg = pos+1; // new beginning
-
-      // cout << "m[" << idx << "]=" << _merlin[idx] << endl;
-      idx++;
-    }
-    pos++;
-  }
-}
-
 /**
  * Comparison of clauses. The comparison uses four orders in the
  * following order:
@@ -314,25 +279,14 @@ bool AgeQueue::lessThan(Clause* c1,Clause* c2)
 {
   CALL("AgeQueue::lessThan");
 
-  /*
-  bool c1BelowMerlin = belowMerlin(c1);
-  bool c2BelowMerlin = belowMerlin(c2);
+  if (_modelSaidYes) {
+    if (c1->modelSaidYes && !c2->modelSaidYes) {
+      return true;
+    }
 
-  if (c1BelowMerlin && !c2BelowMerlin) {
-    return true;
-  }
-
-  if (c2BelowMerlin && !c1BelowMerlin) {
-    return false;
-  }
-  */
-
-  if (c1->modelSaidYes && !c2->modelSaidYes) {
-    return true;
-  }
-
-  if (c2->modelSaidYes && !c1->modelSaidYes) {
-    return false;
+    if (c2->modelSaidYes && !c1->modelSaidYes) {
+      return false;
+    }
   }
 
   if (c1->age() < c2->age()) {
