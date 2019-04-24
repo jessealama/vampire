@@ -1960,6 +1960,9 @@ public:
   int ageRatio() const { return _ageWeightRatio.actualValue; }
   void setAgeRatio(int v){ _ageWeightRatio.actualValue = v; }
   int weightRatio() const { return _ageWeightRatio.otherValue; }
+  int yesRatio() const { return _yesNoRatio.actualValue; }
+  int noRatio() const { return _yesNoRatio.otherValue; }
+  bool twoTierQueuing() const { return _twoTierQueuing.actualValue; }
   void setWeightRatio(int v){ _ageWeightRatio.otherValue = v; }
   bool literalMaximalityAftercheck() const { return _literalMaximalityAftercheck.actualValue; }
   bool superpositionFromVariables() const { return _superpositionFromVariables.actualValue; }
@@ -2209,6 +2212,8 @@ private:
   BoolOptionValue _encode;
 
   RatioOptionValue _ageWeightRatio;
+  RatioOptionValue _yesNoRatio;
+  BoolOptionValue _twoTierQueuing;
   BoolOptionValue _literalMaximalityAftercheck;
   BoolOptionValue _arityCheck;
   
