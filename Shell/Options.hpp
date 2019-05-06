@@ -2007,7 +2007,7 @@ public:
   bool timeStatistics() const { return _timeStatistics.actualValue; }
   bool splitting() const { return _splitting.actualValue; }
   void setSplitting(bool value){ _splitting.actualValue=value; }
-  bool nonliteralsInClauseWeight() const { return _nonliteralsInClauseWeight.actualValue; }
+  unsigned nonliteralsInClauseWeight() const { return _nonliteralsInClauseWeight.actualValue; }
   unsigned sineDepth() const { return _sineDepth.actualValue; }
   unsigned sineGeneralityThreshold() const { return _sineGeneralityThreshold.actualValue; }
   SineSelection sineSelection() const { return _sineSelection.actualValue; }
@@ -2341,7 +2341,7 @@ private:
   StringOptionValue _namePrefix;
   IntOptionValue _naming;
   ChoiceOptionValue<Niceness> _nicenessOption;
-  BoolOptionValue _nonliteralsInClauseWeight;
+  IntOptionValue _nonliteralsInClauseWeight;
   BoolOptionValue _normalize;
 
   BoolOptionValue _outputAxiomNames;

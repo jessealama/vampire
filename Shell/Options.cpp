@@ -1442,7 +1442,7 @@ void Options::Options::init()
     _splittingNonsplittableComponents.setRandomChoices({"all","all_dependent","known","none"});
 
 
-    _nonliteralsInClauseWeight = BoolOptionValue("nonliterals_in_clause_weight","nicw",false);
+    _nonliteralsInClauseWeight = IntOptionValue("nonliterals_in_clause_weight","nicw",0);
     _nonliteralsInClauseWeight.description=
     "Non-literal parts of clauses (such as its split history) will also contribute to the weight";
     _lookup.insert(&_nonliteralsInClauseWeight);
@@ -1450,7 +1450,7 @@ void Options::Options::init()
     _nonliteralsInClauseWeight.reliesOn(_saturationAlgorithm.is(notEqual(SaturationAlgorithm::INST_GEN)));
     _nonliteralsInClauseWeight.reliesOn(_splitting.is(notEqual(false)));
     _nonliteralsInClauseWeight.addProblemConstraint(hasNonUnits());
-    _nonliteralsInClauseWeight.setRandomChoices({"on","off"});
+    _nonliteralsInClauseWeight.setRandomChoices({"0","1","5","10","15","20"});
 
 //*********************** SAT solver (used in various places)  ***********************
 
