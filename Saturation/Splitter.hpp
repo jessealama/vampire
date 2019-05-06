@@ -256,6 +256,7 @@ private:
   float _flushQuotient;
   Options::SplittingDeleteDeactivated _deleteDeactivated;
   Options::SplittingCongruenceClosure _congruenceClosure;
+  bool _recordComponentSizes;
 #if VZ3
   bool hasSMTSolver;
 #endif

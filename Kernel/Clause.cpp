@@ -523,7 +523,7 @@ void Clause::computeWeight() const
   // The alternative would be to remove the clause and reenter it into the passive queue whenever
   // The split set was changed
   if (env.options->nonliteralsInClauseWeight()) {
-    _weight += (env.options->nonliteralsInClauseWeight())*splitWeight(); // no longer includes propWeight
+    _weight += splitWeight(); // no longer includes propWeight
   }
 
   // If _weight is zero (empty clause) then no need to do this
@@ -543,7 +543,19 @@ void Clause::computeWeight() const
  */
 unsigned Clause::splitWeight() const
 {
-  return splits() ? splits()->size() : 0;
+  unsigned res = 0;
+  if (_splits) {
+    SplitSet::Iterator sit(*_splits);
+
+    while(sit.hasNext()) {
+      SplitLevel slev=sit.next();
+      res += env.splitComponentWeights->get(slev);
+    }
+  }
+
+  //cout << "Split weight " << res << endl;
+
+  return res;
 }
 
 /**

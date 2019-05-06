@@ -59,7 +59,8 @@ Environment::Environment()
     colorUsed(false),
     _outputDepth(0),
     _priorityOutput(0),
-    _pipe(0)
+    _pipe(0),
+    splitComponentWeights(nullptr)
 {
   options = new Options;
   statistics = new Statistics;  

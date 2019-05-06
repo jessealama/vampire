@@ -2341,7 +2341,7 @@ private:
   StringOptionValue _namePrefix;
   IntOptionValue _naming;
   ChoiceOptionValue<Niceness> _nicenessOption;
-  IntOptionValue _nonliteralsInClauseWeight;
+  BoolOptionValue _nonliteralsInClauseWeight;
   BoolOptionValue _normalize;
 
   BoolOptionValue _outputAxiomNames;

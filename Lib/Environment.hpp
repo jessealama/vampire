@@ -67,6 +67,8 @@ public:
   DHMap<const Kernel::Unit*,unsigned>* clausePriorities;
   unsigned maxClausePriority;
 
+  DHMap<unsigned,unsigned>* splitComponentWeights;
+
   bool haveOutput();
   void beginOutput();
   void endOutput();

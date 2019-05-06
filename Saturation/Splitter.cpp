@@ -664,6 +664,7 @@ Splitter::Splitter()
   _clausesAdded(false), _haveBranchRefutation(false)
 {
   CALL("Splitter::Splitter");
+
   if(env.options->proof()==Options::Proof::TPTP){
     unsigned spl = env.signature->addFreshFunction(0,"spl");
     splPrefix = env.signature->functionName(spl)+"_";
@@ -723,6 +724,8 @@ void Splitter::init(SaturationAlgorithm* sa)
 
   _fastRestart = opts.splittingFastRestart();
   _deleteDeactivated = opts.splittingDeleteDeactivated();
+
+  _recordComponentSizes = opts.nonliteralsInClauseWeight();
 
   if (opts.useHashingVariantIndex()) {
     _componentIdx = new HashingClauseVariantIndex();
@@ -1224,6 +1227,23 @@ Clause* Splitter::buildAndInsertComponentClause(SplitLevel name, unsigned size, 
   //cout << "Name " << getLiteralFromName(name).toString() << " for " << compCl->toString() << endl; 
 
   compCl->setAge(orig ? orig->age() : AGE_NOT_FILLED);
+
+  if (_recordComponentSizes) {
+    if (!env.splitComponentWeights) {
+      env.splitComponentWeights = new DHMap<unsigned,unsigned>();
+    }
+
+    // don't do this by ``recursively'' calling compCl->weight()
+    unsigned compWeight = 0;
+    for (int i = 0; i < size; i++) {
+      compWeight += lits[i]->weight();
+    }
+    // eventually, compCl->weight() is going to be 2*compWeight. Once for the raw clause itself and once for it dependency (on itself)
+
+    // cout << "Comp " << compCl->toString() << " weight " << compWeight << endl;
+
+    env.splitComponentWeights->insert(name,compWeight);
+  }
 
   _db[name] = new SplitRecord(compCl);
   compCl->setSplits(SplitSet::getSingleton(name));
