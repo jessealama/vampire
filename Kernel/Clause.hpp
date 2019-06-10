@@ -253,8 +253,6 @@ public:
 //#if VDEBUG
   bool contains(Literal* lit);
   void assertValid();
-  void incFreezeCount(){ _freeze_count++;}
-  int getFreezeCount(){ return _freeze_count;}
 //#endif
 
   /** Mark clause as input clause for the saturation algorithm */
@@ -350,6 +348,12 @@ public:
   unsigned varCnt();
   unsigned maxVar(); // useful to create fresh variables w.r.t. the clause
 
+  bool heedingHint() const { return _heedingHint; }
+  void heedHint() {
+    ASS_NEQ(_store,PASSIVE); // because _heedingHint influence passive container order
+    _heedingHint = true;
+  }
+
 protected:
   /** number of literals */
   unsigned _length : 20;
@@ -397,8 +401,8 @@ protected:
 #if VDEBUG
   static bool _auxInUse;
 #endif
-  int _freeze_count;
-//#endif
+
+  bool _heedingHint;
 
   /** Array of literals of this unit */
   Literal* _literals[1];
