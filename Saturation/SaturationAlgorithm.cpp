@@ -70,6 +70,7 @@
 #include "Inferences/Instantiation.hpp"
 #include "Inferences/TheoryInstAndSimp.hpp"
 #include "Inferences/Induction.hpp"
+#include "Inferences/HintsForAvatarFakeSimplifier.hpp"
 
 #include "Saturation/ExtensionalityClauseContainer.hpp"
 
@@ -1330,8 +1331,14 @@ SaturationAlgorithm* SaturationAlgorithm::createFromOptions(Problem& prb, const 
     res->_imgr = SmartPtr<IndexManager>(new IndexManager(res));
   }
 
+  HintsForAvatarFakeSimplifier* hintsForAvatarFakeSimplifier = 0;
+  if (opt.avatarHints()) {
+    hintsForAvatarFakeSimplifier = new HintsForAvatarFakeSimplifier();
+  }
+
   if(opt.splitting()){
     res->_splitter = new Splitter();
+    res->_splitter->setHintsFakeSimplifier(hintsForAvatarFakeSimplifier);
   }
 
   // create generating inference engine
@@ -1388,7 +1395,7 @@ SaturationAlgorithm* SaturationAlgorithm::createFromOptions(Problem& prb, const 
 
   res->setGeneratingInferenceEngine(gie);
 
-  res->setImmediateSimplificationEngine(createISE(prb, opt));
+  res->setImmediateSimplificationEngine(createISE(prb, opt, hintsForAvatarFakeSimplifier));
 
   // create forward simplification engine
   if (prb.hasEquality() && opt.innerRewriting()) {
