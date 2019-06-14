@@ -1037,13 +1037,13 @@ void TheoryAxioms::addMergeArrayAxiom(unsigned arraySort) {
   TermList argXj[] = {x,j};
   TermList selectXj(Term::create(pred_select, 2, argXj ));
   Literal* sel1 = Literal::createEquality(true, selectMj, selectXj, innerSort);
-  Literal* guard1 = Literal::create2(less, false, i, j);
+  Literal* guard1 = Literal::create2(less, false, j, i);
   addTheoryNonUnitClause(guard1, sel1, EXPENSIVE);
 
   TermList argYj[] = {y,j};
   TermList selectYj(Term::create(pred_select, 2, argYj));
   Literal* sel2 = Literal::createEquality(true, selectMj, selectYj, innerSort);
-  Literal* guard2 = Literal::create2(less, true, i, j);
+  Literal* guard2 = Literal::create2(less, true, j, i);
   addTheoryNonUnitClause(guard2, sel2, EXPENSIVE);
 
 } //addMergeArrayAxiom
