@@ -428,6 +428,10 @@ vstring Clause::toString() const
     result += " C" + Int::toString(color()) + " ";
   }
 
+  if (heedingHint()) {
+    result = " H " + result;
+  }
+
   result += vstring(" (") + Int::toString(_age) + ':' + Int::toString(weight());
   float ew = const_cast<Clause*>(this)->getEffectiveWeight(const_cast<Shell::Options&>(*(env.options)));
   unsigned effective = static_cast<int>(ceil(ew));
