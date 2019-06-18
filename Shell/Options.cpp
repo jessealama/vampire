@@ -837,7 +837,7 @@ void Options::Options::init()
     _ageWeightRatio.reliesOn(_saturationAlgorithm.is(notEqual(SaturationAlgorithm::INST_GEN))->Or<int>(_instGenWithResolution.is(equal(true))));
     _ageWeightRatio.setRandomChoices({"8:1","5:1","4:1","3:1","2:1","3:2","5:4","1","2:3","2","3","4","5","6","7","8","10","12","14","16","20","24","28","32","40","50","64","128","1024"});
 
-    _avatarHints = BoolOptionValue("avatar_hints","ah",false);
+    _avatarHints = ChoiceOptionValue<AvatarHintsKind>("avatar_hints","ah",AvatarHintsKind::OFF,{"bwd","fwd","off"});
     _lookup.insert(&_avatarHints);
     _avatarHints.tag(OptionTag::SATURATION);
     _avatarHints.setExperimental();
