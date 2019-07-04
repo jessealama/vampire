@@ -1682,7 +1682,7 @@ void Options::Options::init()
     _lookup.insert(&_termOrdering);
 
     _symbolPrecedence = ChoiceOptionValue<SymbolPrecedence>("symbol_precedence","sp",SymbolPrecedence::ARITY,
-                                                            {"arity","occurrence","reverse_arity","scramble",
+                                                            {"arity","occurrence","reverse_occurrence","reverse_arity","scramble",
                                                              "frequency","reverse_frequency",
                                                              "weighted_frequency","reverse_weighted_frequency"});
     _symbolPrecedence.description="Vampire uses term orderings which require a precedence relation between symbols. Arity orders symbols by their arity (and reverse_arity takes the reverse of this) and occurence orders symbols by the order they appear in the problem.";

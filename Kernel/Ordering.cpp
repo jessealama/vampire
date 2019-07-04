@@ -680,6 +680,11 @@ PrecedenceOrdering::PrecedenceOrdering(Problem& prb, const Options& opt)
         break;
       case Shell::Options::SymbolPrecedence::OCCURRENCE:
         break;
+      case Shell::Options::SymbolPrecedence::REVERSE_OCCURRENCE:
+        for (unsigned i=0;i<_functions;i++){
+          aux[i] = _functions-1-i;
+        }
+        break;
       case Shell::Options::SymbolPrecedence::SCRAMBLE:
         for(unsigned i=0;i<_functions;i++){
           unsigned j = Random::getInteger(_functions-i)+i;
@@ -741,7 +746,12 @@ PrecedenceOrdering::PrecedenceOrdering(Problem& prb, const Options& opt)
      break;
     case Shell::Options::SymbolPrecedence::OCCURRENCE:
       break;
-      case Shell::Options::SymbolPrecedence::SCRAMBLE:
+    case Shell::Options::SymbolPrecedence::REVERSE_OCCURRENCE:
+      for (unsigned i=0;i<_predicates;i++){
+        aux[i] = _predicates-1-i;
+      }
+      break;
+    case Shell::Options::SymbolPrecedence::SCRAMBLE:
         for(unsigned i=0;i<_predicates;i++){
           unsigned j = Random::getInteger(_predicates-i)+i;
           unsigned tmp = aux[j];
